@@ -1,0 +1,33 @@
+# Python cache and build artifacts
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environments
+.venv/
+venv/
+
+# Local env files (must not be committed)
+.env
+.env.*
+!.env.example
+**/.env
+test.env
+**/test.env
+
+# OS/editor noise
+.DS_Store
+.vscode/
+.idea/
+
+# codex
+.codex
+.codex.md
+
+# IDE
+.idea
+.vscode
+AGENTS.md
