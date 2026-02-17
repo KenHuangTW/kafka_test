@@ -8,6 +8,7 @@ from .member import (
     MemberRegisterRequest,
     MemberRegisterResponse,
 )
+from .product import ProductActionResponse, ProductData, ProductUpsertRequest
 
 __all__ = [
     "BaseResponse",
@@ -20,4 +21,7 @@ __all__ = [
     "MemberLoginResponse",
     "MemberRegisterRequest",
     "MemberRegisterResponse",
+    "ProductUpsertRequest",
+    "ProductData",
+    "ProductActionResponse",
 ]
