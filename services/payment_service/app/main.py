@@ -1,15 +1,20 @@
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from uuid import uuid4
 
+from common.kafka_client import KafkaManager
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from common.kafka_client import KafkaManager
-
 SERVICE_NAME = "payment"
 kafka = KafkaManager(service_name=SERVICE_NAME)
+app = FastAPI(
+    title="Payment Service",
+    lifespan=lifespan,
+    docs_url=f"/{SERVICE_NAME}/docs",
+    openapi_url=f"/{SERVICE_NAME}/openapi.json",
+)
 
 
 @asynccontextmanager
@@ -24,9 +29,6 @@ async def lifespan(_: FastAPI):
     await kafka.consume_forever(handler)
     yield
     await kafka.stop()
-
-
-app = FastAPI(title="Payment Service", lifespan=lifespan)
 
 
 class EventIn(BaseModel):

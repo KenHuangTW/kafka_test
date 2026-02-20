@@ -26,7 +26,12 @@ async def lifespan(_: FastAPI):
     await kafka.stop()
 
 
-app = FastAPI(title="Backend Service", lifespan=lifespan)
+app = FastAPI(
+    title="Backend Service",
+    lifespan=lifespan,
+    docs_url=f"/{SERVICE_NAME}/docs",
+    openapi_url=f"/{SERVICE_NAME}/openapi.json",
+)
 
 
 class EventIn(BaseModel):
