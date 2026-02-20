@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from common.kafka_client import KafkaManager
 from fastapi import FastAPI
+from services.payment_service.database import close_redis
 from services.payment_service.router import api_router
 
 SERVICE_NAME = "payment"
@@ -23,6 +24,7 @@ async def lifespan(app: FastAPI):
     await kafka.consume_forever(handler)
     yield
     await kafka.stop()
+    await close_redis()
 
 
 app = FastAPI(

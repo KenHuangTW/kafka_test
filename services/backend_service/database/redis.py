@@ -19,15 +19,6 @@ def get_redis() -> Redis:
     return _redis_client
 
 
-async def ping_redis() -> bool:
-    try:
-        client = get_redis()
-        await client.ping()
-        return True
-    except Exception:
-        return False
-
-
 async def close_redis() -> None:
     global _redis_client
     if _redis_client is not None:
