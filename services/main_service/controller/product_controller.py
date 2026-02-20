@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from common.cache_decorator import invalidate_cache_key
 from services.main_service.app.models import Product
 from services.main_service.controller.repository.product_repository import (
     create_product,
@@ -8,6 +9,7 @@ from services.main_service.controller.repository.product_repository import (
     soft_delete_product,
     update_product,
 )
+from services.main_service.database import get_redis
 from services.main_service.schemas.product import ProductActionResponse, ProductData, ProductUpsertRequest
 
 
@@ -44,10 +46,12 @@ async def update_existing_product(db: Session, product_id: int, payload: Product
         price=payload.price,
         currency=payload.currency,
     )
+    await invalidate_cache_key(get_redis, f"main:api:product:{product_id}")
     return ProductActionResponse(success=True)
 
 
 async def delete_product(db: Session, product_id: int) -> ProductActionResponse:
     product = _require_product(db=db, product_id=product_id)
     soft_delete_product(db=db, product=product)
+    await invalidate_cache_key(get_redis, f"main:api:product:{product_id}")
     return ProductActionResponse(success=True)
