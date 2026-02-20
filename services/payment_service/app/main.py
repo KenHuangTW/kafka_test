@@ -1,24 +1,18 @@
-import os
 from contextlib import asynccontextmanager
-from datetime import UTC, datetime
-from uuid import uuid4
 
 from common.kafka_client import KafkaManager
 from fastapi import FastAPI
-from pydantic import BaseModel
+from services.payment_service.router import api_router
 
 SERVICE_NAME = "payment"
 kafka = KafkaManager(service_name=SERVICE_NAME)
-app = FastAPI(
-    title="Payment Service",
-    lifespan=lifespan,
-    docs_url=f"/{SERVICE_NAME}/docs",
-    openapi_url=f"/{SERVICE_NAME}/openapi.json",
-)
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI):
+async def lifespan(app: FastAPI):
+    app.state.kafka = kafka
+    app.state.service_name = SERVICE_NAME
+
     await kafka.start()
 
     async def handler(event: dict[str, object]) -> None:
@@ -31,28 +25,10 @@ async def lifespan(_: FastAPI):
     await kafka.stop()
 
 
-class EventIn(BaseModel):
-    event_type: str
-    entity: str
-    entity_id: str
-    version: int
-
-
-@app.get("/health")
-async def health() -> dict[str, str]:
-    return {"service": SERVICE_NAME, "status": "ok"}
-
-
-@app.post("/events")
-async def publish_event(payload: EventIn) -> dict[str, str]:
-    event = {
-        "event_id": str(uuid4()),
-        "event_type": payload.event_type,
-        "entity": payload.entity,
-        "entity_id": payload.entity_id,
-        "version": payload.version,
-        "updated_at": datetime.now(UTC).isoformat(),
-        "trace_id": str(uuid4()),
-    }
-    await kafka.publish(event)
-    return {"status": "published", "topic": os.getenv("KAFKA_TOPIC", "service.events")}
+app = FastAPI(
+    title="Payment Service",
+    lifespan=lifespan,
+    docs_url=f"/{SERVICE_NAME}/docs",
+    openapi_url=f"/{SERVICE_NAME}/openapi.json",
+)
+app.include_router(api_router)
