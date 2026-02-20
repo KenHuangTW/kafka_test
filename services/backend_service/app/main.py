@@ -7,6 +7,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from common.kafka_client import KafkaManager
+from services.backend_service.database import close_redis
+from services.backend_service.router import api_router
 
 SERVICE_NAME = "backend"
 kafka = KafkaManager(service_name=SERVICE_NAME)
@@ -24,6 +26,7 @@ async def lifespan(_: FastAPI):
     await kafka.consume_forever(handler)
     yield
     await kafka.stop()
+    await close_redis()
 
 
 app = FastAPI(
@@ -32,6 +35,7 @@ app = FastAPI(
     docs_url=f"/{SERVICE_NAME}/docs",
     openapi_url=f"/{SERVICE_NAME}/openapi.json",
 )
+app.include_router(api_router)
 
 
 class EventIn(BaseModel):
