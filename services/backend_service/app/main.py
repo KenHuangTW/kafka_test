@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from common.kafka_client import KafkaManager
+from services.backend_service.controller.cache_event_controller import handle_cache_event
 from services.backend_service.database import close_redis
 from services.backend_service.router import api_router
 
@@ -21,7 +22,7 @@ async def lifespan(_: FastAPI):
     async def handler(event: dict[str, object]) -> None:
         if event.get("source_service") == SERVICE_NAME:
             return
-        print(f"[{SERVICE_NAME}] received event: {event}")
+        await handle_cache_event(event)
 
     await kafka.consume_forever(handler)
     yield
