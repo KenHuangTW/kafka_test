@@ -3,6 +3,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict
 
+from .base import BaseResponse
+
 
 class OrderData(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -15,3 +17,11 @@ class OrderData(BaseModel):
     create_at: datetime
     update_at: datetime
     delete_at: datetime | None
+
+
+class OrderGetResponse(BaseResponse):
+    data: OrderData
+
+
+class OrderListResponse(BaseResponse):
+    data: list[OrderData]
