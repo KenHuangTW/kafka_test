@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from services.payment_service.app.models import Member, Order, Product
@@ -27,3 +27,8 @@ def create_order(db: Session, member_id: int, product_id: int, amount: Decimal, 
     db.commit()
     db.refresh(order)
     return order
+
+
+def count_active_orders_by_product_id(db: Session, product_id: int) -> int:
+    stmt = select(func.count(Order.id)).where(Order.product_id == product_id, Order.delete_at.is_(None))
+    return int(db.execute(stmt).scalar_one())

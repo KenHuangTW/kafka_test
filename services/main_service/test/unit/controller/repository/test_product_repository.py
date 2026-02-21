@@ -34,6 +34,7 @@ def test_create_product_with_fake_db_session() -> None:
         description="Mechanical keyboard",
         price=1999,
         currency="TWD",
+        sale_limit=5,
     )
 
     fake_db.add.assert_called_once()
@@ -43,11 +44,12 @@ def test_create_product_with_fake_db_session() -> None:
     assert product.name == "Keyboard"
     assert product.price == 1999
     assert product.currency == "TWD"
+    assert product.sale_limit == 5
 
 
 def test_update_product_with_fake_db_session() -> None:
     fake_db = MagicMock()
-    product = SimpleNamespace(name="A", description=None, price=1, currency="USD")
+    product = SimpleNamespace(name="A", description=None, price=1, currency="USD", sale_limit=1)
 
     updated = update_product(
         db=fake_db,
@@ -56,6 +58,7 @@ def test_update_product_with_fake_db_session() -> None:
         description="updated",
         price=2,
         currency="TWD",
+        sale_limit=8,
     )
 
     fake_db.commit.assert_called_once()
@@ -65,6 +68,7 @@ def test_update_product_with_fake_db_session() -> None:
     assert product.description == "updated"
     assert product.price == 2
     assert product.currency == "TWD"
+    assert product.sale_limit == 8
 
 
 def test_soft_delete_product_sets_delete_at() -> None:

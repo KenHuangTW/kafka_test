@@ -32,6 +32,7 @@ async def create_new_product(db: Session, payload: ProductUpsertRequest) -> Prod
         description=payload.description,
         price=payload.price,
         currency=payload.currency,
+        sale_limit=payload.sale_limit,
     )
     return ProductData.model_validate(product)
 
@@ -45,6 +46,7 @@ async def update_existing_product(db: Session, product_id: int, payload: Product
         description=payload.description,
         price=payload.price,
         currency=payload.currency,
+        sale_limit=payload.sale_limit,
     )
     await invalidate_cache_key(get_redis, f"main:api:product:{product_id}")
     return ProductActionResponse(success=True)

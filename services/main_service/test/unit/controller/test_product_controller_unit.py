@@ -22,6 +22,7 @@ async def test_get_product_flow_with_mocks(monkeypatch: pytest.MonkeyPatch) -> N
         description="Wireless",
         price=1000,
         currency="TWD",
+        sale_limit=20,
         create_at=now,
         update_at=now,
         delete_at=None,
@@ -57,12 +58,13 @@ async def test_create_product_flow_with_mocks(monkeypatch: pytest.MonkeyPatch) -
     now = datetime.utcnow()
     monkeypatch.setattr(
         "services.main_service.controller.product_controller.create_product",
-        lambda db, name, description, price, currency: SimpleNamespace(
+        lambda db, name, description, price, currency, sale_limit: SimpleNamespace(
             id=10,
             name=name,
             description=description,
             price=price,
             currency=currency,
+            sale_limit=sale_limit,
             create_at=now,
             update_at=now,
             delete_at=None,
@@ -76,6 +78,7 @@ async def test_create_product_flow_with_mocks(monkeypatch: pytest.MonkeyPatch) -
             description="27 inch",
             price=8999,
             currency="TWD",
+            sale_limit=10,
         ),
     )
 
@@ -93,6 +96,7 @@ async def test_update_product_flow_with_mocks(monkeypatch: pytest.MonkeyPatch) -
         description=None,
         price=1,
         currency="USD",
+        sale_limit=1,
         create_at=now,
         update_at=now,
         delete_at=None,
@@ -104,12 +108,13 @@ async def test_update_product_flow_with_mocks(monkeypatch: pytest.MonkeyPatch) -
         lambda db, product_id: fake_product,
     )
 
-    def fake_update(db, product, name, description, price, currency):
+    def fake_update(db, product, name, description, price, currency, sale_limit):
         called["product"] = product
         called["name"] = name
         called["description"] = description
         called["price"] = price
         called["currency"] = currency
+        called["sale_limit"] = sale_limit
         return product
 
     monkeypatch.setattr("services.main_service.controller.product_controller.update_product", fake_update)
@@ -122,6 +127,7 @@ async def test_update_product_flow_with_mocks(monkeypatch: pytest.MonkeyPatch) -
             description="updated",
             price=300,
             currency="TWD",
+            sale_limit=3,
         ),
     )
 
@@ -130,6 +136,7 @@ async def test_update_product_flow_with_mocks(monkeypatch: pytest.MonkeyPatch) -
     assert called["name"] == "New"
     assert called["price"] == 300
     assert called["currency"] == "TWD"
+    assert called["sale_limit"] == 3
 
 
 @pytest.mark.asyncio
@@ -141,6 +148,7 @@ async def test_delete_product_flow_with_mocks(monkeypatch: pytest.MonkeyPatch) -
         description="1TB",
         price=2500,
         currency="TWD",
+        sale_limit=2,
         create_at=now,
         update_at=now,
         delete_at=None,

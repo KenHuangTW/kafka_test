@@ -9,7 +9,7 @@ from services.payment_service.app.models import Member, Order, Product
 
 def test_get_product_and_order_success(test_client: TestClient, db_session: Session) -> None:
     member = Member(account="ken", password="hashed")
-    product = Product(name="Laptop", description="13 inch", price=42000, currency="TWD")
+    product = Product(name="Laptop", description="13 inch", price=42000, currency="TWD", sale_limit=5)
     db_session.add(member)
     db_session.add(product)
     db_session.commit()
@@ -34,6 +34,7 @@ def test_get_product_and_order_success(test_client: TestClient, db_session: Sess
     assert product_body["data"]["id"] == product.id
     assert product_body["data"]["name"] == "Laptop"
     assert product_body["data"]["price"] == 42000
+    assert product_body["data"]["sale_limit"] == 5
 
     order_response = test_client.get(f"/order/{order.id}")
     assert order_response.status_code == 200
@@ -61,9 +62,9 @@ def test_get_product_and_order_list_success(test_client: TestClient, db_session:
     member = Member(account="list-user", password="hashed")
     db_session.add(member)
 
-    product_1 = Product(name="Keyboard", description="wireless", price=2100, currency="TWD")
-    product_2 = Product(name="Mouse", description="ergonomic", price=1500, currency="TWD")
-    product_deleted = Product(name="Legacy", description=None, price=999, currency="TWD")
+    product_1 = Product(name="Keyboard", description="wireless", price=2100, currency="TWD", sale_limit=10)
+    product_2 = Product(name="Mouse", description="ergonomic", price=1500, currency="TWD", sale_limit=8)
+    product_deleted = Product(name="Legacy", description=None, price=999, currency="TWD", sale_limit=1)
     db_session.add_all([product_1, product_2, product_deleted])
     db_session.commit()
     db_session.refresh(member)
