@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 from services.payment_service.controller.repository.payment_repository import (
+    count_active_orders_by_product_id,
     create_order,
     get_active_member_by_id,
     get_active_product_by_id,
@@ -55,3 +56,13 @@ def test_create_order_with_fake_db_session() -> None:
     assert order.product_id == 3
     assert order.amount == Decimal("99.00")
     assert order.currency == "TWD"
+
+
+def test_count_active_orders_by_product_id_reads_from_session() -> None:
+    fake_db = MagicMock()
+    fake_db.execute.return_value.scalar_one.return_value = 3
+
+    count = count_active_orders_by_product_id(db=fake_db, product_id=2)
+
+    fake_db.execute.assert_called_once()
+    assert count == 3

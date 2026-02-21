@@ -16,6 +16,7 @@ def test_checkout_payment_success(test_client: TestClient, db_session: Session) 
         description="13 inch",
         price=42000,
         currency="TWD",
+        sale_limit=2,
     )
     db_session.add(member)
     db_session.add(product)
@@ -48,7 +49,7 @@ def test_checkout_payment_success(test_client: TestClient, db_session: Session) 
 
 
 def test_checkout_payment_invalid_token(test_client: TestClient, db_session: Session) -> None:
-    product = Product(name="Laptop", description=None, price=1, currency="TWD")
+    product = Product(name="Laptop", description=None, price=1, currency="TWD", sale_limit=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -80,7 +81,7 @@ def test_checkout_payment_product_not_found(test_client: TestClient, db_session:
 
 def test_checkout_payment_member_deleted_is_rejected(test_client: TestClient, db_session: Session) -> None:
     member = Member(account="ken", password="hashed", delete_at=datetime.utcnow())
-    product = Product(name="Laptop", description=None, price=100, currency="TWD")
+    product = Product(name="Laptop", description=None, price=100, currency="TWD", sale_limit=1)
     db_session.add(member)
     db_session.add(product)
     db_session.commit()
@@ -95,3 +96,31 @@ def test_checkout_payment_member_deleted_is_rejected(test_client: TestClient, db
 
     assert response.status_code == 401
     assert response.json()["detail"] == "invalid token"
+
+
+def test_checkout_payment_rejects_when_sale_limit_reached(test_client: TestClient, db_session: Session) -> None:
+    member = Member(account="ken", password="hashed")
+    product = Product(name="Laptop", description=None, price=100, currency="TWD", sale_limit=1)
+    db_session.add(member)
+    db_session.add(product)
+    db_session.commit()
+    db_session.refresh(member)
+    db_session.refresh(product)
+
+    existing_order = Order(
+        member_id=member.id,
+        product_id=product.id,
+        amount=Decimal("100.00"),
+        currency="TWD",
+    )
+    db_session.add(existing_order)
+    db_session.commit()
+
+    token = issue_member_token(member_id=member.id, account=member.account)
+    response = test_client.post(
+        "/payments/checkout",
+        json={"token": token, "product_id": product.id},
+    )
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "product sold out"

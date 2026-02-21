@@ -15,6 +15,7 @@ class Product(Base):
     description: Mapped[str | None] = mapped_column(Text(), nullable=True)
     price: Mapped[int] = mapped_column(nullable=False)
     currency: Mapped[str] = mapped_column(String(8), nullable=False)
+    sale_limit: Mapped[int] = mapped_column(nullable=False)
     create_at: Mapped[datetime] = mapped_column(
         mysql.TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP")
     )

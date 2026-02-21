@@ -17,8 +17,15 @@ def create_product(
     description: str | None,
     price: int,
     currency: str,
+    sale_limit: int,
 ) -> Product:
-    product = Product(name=name, description=description, price=price, currency=currency)
+    product = Product(
+        name=name,
+        description=description,
+        price=price,
+        currency=currency,
+        sale_limit=sale_limit,
+    )
     db.add(product)
     db.commit()
     db.refresh(product)
@@ -32,11 +39,13 @@ def update_product(
     description: str | None,
     price: int,
     currency: str,
+    sale_limit: int,
 ) -> Product:
     product.name = name
     product.description = description
     product.price = price
     product.currency = currency
+    product.sale_limit = sale_limit
     db.commit()
     db.refresh(product)
     return product
