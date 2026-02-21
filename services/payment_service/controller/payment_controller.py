@@ -1,8 +1,11 @@
 from decimal import Decimal
+from datetime import UTC, datetime
+from uuid import uuid4
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from common.kafka_client import KafkaManager
 from services.payment_service.controller.repository.payment_repository import (
     count_active_orders_by_product_id,
     create_order,
@@ -11,6 +14,24 @@ from services.payment_service.controller.repository.payment_repository import (
 )
 from services.payment_service.schemas.payment import PaymentCheckoutRequest, PaymentCheckoutResponse, PaymentData
 from services.payment_service.utils.jwt import decode_member_token
+
+
+async def _publish_order_created_event(kafka: KafkaManager, *, order_id: int) -> None:
+    event = {
+        "event_id": str(uuid4()),
+        "event_type": "order.created",
+        "entity": "order",
+        "entity_id": str(order_id),
+        "version": order_id,
+        "updated_at": datetime.now(UTC).isoformat(),
+        "trace_id": str(uuid4()),
+    }
+
+    try:
+        await kafka.publish(event)
+    except Exception:
+        # Event bus failure should not block payment success.
+        return
 
 
 async def _get_product_snapshot(db: Session, product_id: int) -> dict[str, int | str] | None:
@@ -32,7 +53,11 @@ async def _require_product(db: Session, product_id: int) -> dict[str, int | str]
     return product
 
 
-async def checkout_payment(db: Session, payload: PaymentCheckoutRequest) -> PaymentCheckoutResponse:
+async def checkout_payment(
+    db: Session,
+    payload: PaymentCheckoutRequest,
+    kafka: KafkaManager | None = None,
+) -> PaymentCheckoutResponse:
     member_id = decode_member_token(payload.token)
 
     member = get_active_member_by_id(db=db, member_id=member_id)
@@ -51,6 +76,9 @@ async def checkout_payment(db: Session, payload: PaymentCheckoutRequest) -> Paym
         amount=Decimal(int(product["price"])),
         currency=str(product["currency"]),
     )
+    if kafka is not None:
+        await _publish_order_created_event(kafka=kafka, order_id=order.id)
+
     return PaymentCheckoutResponse(
         success=True,
         message="payment success",
