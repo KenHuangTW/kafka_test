@@ -11,7 +11,7 @@ export KAFKA_BOOTSTRAP_SERVERS="${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}"
 HOST="${HOST:-127.0.0.1}"
 PORT="${PORT:-8003}"
 CONDA_ENV_NAME="${CONDA_ENV_NAME:-microservices-kafka}"
-RELOAD="${RELOAD:-0}"
+RELOAD="${RELOAD:-1}"
 
 UVICORN_ARGS=(services.backend_service.app.main:app --host "$HOST" --port "$PORT")
 if [[ "$RELOAD" == "1" ]]; then
