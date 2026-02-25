@@ -1,13 +1,14 @@
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from uuid import uuid4
 
+from common.kafka_client import KafkaManager
 from fastapi import FastAPI
 from pydantic import BaseModel
-
-from common.kafka_client import KafkaManager
-from services.backend_service.controller.cache_event_controller import handle_cache_event
+from services.backend_service.controller.cache_event_controller import (
+    handle_cache_event,
+)
 from services.backend_service.database import close_redis
 from services.backend_service.router import api_router
 

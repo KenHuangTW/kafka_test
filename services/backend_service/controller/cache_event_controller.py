@@ -4,9 +4,7 @@ import os
 from typing import Any
 
 from redis.asyncio import Redis
-
 from services.backend_service.database import get_redis
-
 
 EventPayload = dict[str, object]
 
@@ -58,13 +56,17 @@ async def _delete_keys_by_pattern(redis: Redis, pattern: str) -> None:
         await redis.delete(*batch)
 
 
-async def _invalidate_detail_key(redis: Redis, prefix: str, entity_id: int | None) -> None:
+async def _invalidate_detail_key(
+    redis: Redis, prefix: str, entity_id: int | None
+) -> None:
     if entity_id is None:
         return
     await redis.delete(f"{prefix}:{entity_id}")
 
 
-async def _is_duplicate_event(redis: Redis, event_id: str, dedupe_ttl_seconds: int) -> bool:
+async def _is_duplicate_event(
+    redis: Redis, event_id: str, dedupe_ttl_seconds: int
+) -> bool:
     key = f"{EVENT_DEDUP_KEY_PREFIX}:{event_id}"
     created = await redis.set(key, "1", ex=dedupe_ttl_seconds, nx=True)
     return not bool(created)

@@ -7,7 +7,6 @@ from typing import Awaitable, Callable
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 
-
 JSONDict = dict[str, object]
 
 
@@ -50,7 +49,9 @@ class KafkaManager:
         }
         await self._producer.send_and_wait(self.topic, payload)
 
-    async def consume_forever(self, handler: Callable[[JSONDict], Awaitable[None]]) -> None:
+    async def consume_forever(
+        self, handler: Callable[[JSONDict], Awaitable[None]]
+    ) -> None:
         self._consumer = AIOKafkaConsumer(
             self.topic,
             bootstrap_servers=self.bootstrap_servers,

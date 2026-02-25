@@ -6,7 +6,6 @@ from collections.abc import Awaitable, Callable
 from functools import wraps
 from typing import Any
 
-
 RedisGetter = Callable[[], Any]
 CacheKeyBuilder = Callable[[dict[str, Any]], str]
 CacheSerializer = Callable[[Any], str]
@@ -26,7 +25,9 @@ def _default_should_cache(value: Any) -> bool:
     return value is not None
 
 
-def _build_bound_arguments(func: Callable[..., Any], args: tuple[Any, ...], kwargs: dict[str, Any]) -> dict[str, Any]:
+def _build_bound_arguments(
+    func: Callable[..., Any], args: tuple[Any, ...], kwargs: dict[str, Any]
+) -> dict[str, Any]:
     signature = inspect.signature(func)
     bound = signature.bind_partial(*args, **kwargs)
     return dict(bound.arguments)

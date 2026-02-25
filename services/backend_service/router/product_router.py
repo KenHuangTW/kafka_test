@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Query
-
-from services.backend_service.controller.product_controller import get_product, get_product_list
+from services.backend_service.controller.product_controller import (
+    get_product,
+    get_product_list,
+)
 from services.backend_service.depend import DBSessionDep
 from services.backend_service.schemas import ProductGetResponse, ProductListResponse
 

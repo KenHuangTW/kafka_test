@@ -1,10 +1,16 @@
-from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
-
 from common.cache_decorator import redis_function_cache
-from services.backend_service.controller.repository import get_active_product_by_id, get_active_product_list
+from fastapi import HTTPException, status
+from services.backend_service.controller.repository import (
+    get_active_product_by_id,
+    get_active_product_list,
+)
 from services.backend_service.database import get_redis
-from services.backend_service.schemas import ProductData, ProductGetResponse, ProductListResponse
+from services.backend_service.schemas import (
+    ProductData,
+    ProductGetResponse,
+    ProductListResponse,
+)
+from sqlalchemy.orm import Session
 
 
 @redis_function_cache(
@@ -18,7 +24,9 @@ from services.backend_service.schemas import ProductData, ProductGetResponse, Pr
 async def get_product(db: Session, product_id: int) -> ProductGetResponse:
     product = get_active_product_by_id(db=db, product_id=product_id)
     if product is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="product not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="product not found"
+        )
     return ProductGetResponse(
         success=True,
         message="get product success",
