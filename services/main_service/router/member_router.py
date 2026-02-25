@@ -1,6 +1,8 @@
 from fastapi import APIRouter
-
-from services.main_service.controller.member_controller import login_member, register_member
+from services.main_service.controller.member_controller import (
+    login_member,
+    register_member,
+)
 from services.main_service.depend import DBSessionDep
 from services.main_service.schemas.member import (
     MemberLoginRequest,
@@ -13,7 +15,9 @@ router = APIRouter(prefix="/members", tags=["members"])
 
 
 @router.post("/register", response_model=MemberRegisterResponse)
-async def register(payload: MemberRegisterRequest, db: DBSessionDep) -> MemberRegisterResponse:
+async def register(
+    payload: MemberRegisterRequest, db: DBSessionDep
+) -> MemberRegisterResponse:
     return await register_member(db=db, payload=payload)
 
 
