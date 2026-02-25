@@ -70,6 +70,40 @@ def test_product_crud_flow(test_client: TestClient, db_session: Session) -> None
     assert get_deleted_response.json()["detail"] == "product not found"
 
 
+def test_product_crud_allows_nullable_sale_limit(test_client: TestClient, db_session: Session) -> None:
+    create_payload = {
+        "name": "Unlimited Plan",
+        "description": "No sales cap",
+        "price": 999,
+        "currency": "TWD",
+        "sale_limit": None,
+    }
+    create_response = test_client.post("/product/", json=create_payload)
+    assert create_response.status_code == 200
+
+    created = create_response.json()
+    product_id = created["id"]
+    assert created["sale_limit"] is None
+
+    product_in_db = db_session.execute(select(Product).where(Product.id == product_id)).scalar_one()
+    assert product_in_db.sale_limit is None
+
+    update_payload = {
+        "name": "Unlimited Plan V2",
+        "description": "Still no cap",
+        "price": 1299,
+        "currency": "USD",
+        "sale_limit": None,
+    }
+    update_response = test_client.put(f"/product/{product_id}", json=update_payload)
+    assert update_response.status_code == 200
+    assert update_response.json() == {"success": True}
+
+    with Session(bind=db_session.get_bind()) as verify_session:
+        updated_in_db = verify_session.execute(select(Product).where(Product.id == product_id)).scalar_one()
+    assert updated_in_db.sale_limit is None
+
+
 @pytest.mark.parametrize("method", ["GET", "PUT", "DELETE"])
 def test_product_not_found_cases(test_client: TestClient, method: str) -> None:
     payload = {"name": "X", "description": "Y", "price": 1, "currency": "TWD", "sale_limit": 1}

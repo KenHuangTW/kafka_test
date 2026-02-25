@@ -17,7 +17,7 @@ def create_product(
     description: str | None,
     price: int,
     currency: str,
-    sale_limit: int,
+    sale_limit: int | None,
 ) -> Product:
     product = Product(
         name=name,
@@ -39,7 +39,7 @@ def update_product(
     description: str | None,
     price: int,
     currency: str,
-    sale_limit: int,
+    sale_limit: int | None,
 ) -> Product:
     product.name = name
     product.description = description

@@ -13,7 +13,7 @@ class ProductData(BaseModel):
     description: str | None
     price: int
     currency: str
-    sale_limit: int
+    sale_limit: int | None
     create_at: datetime
     update_at: datetime
     delete_at: datetime | None

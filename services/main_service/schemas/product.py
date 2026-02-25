@@ -8,7 +8,7 @@ class ProductUpsertRequest(BaseModel):
     description: str | None = None
     price: int
     currency: str = Field(min_length=1, max_length=8)
-    sale_limit: int = Field(ge=1)
+    sale_limit: int | None = Field(ge=1)
 
 
 class ProductData(BaseModel):
@@ -19,7 +19,7 @@ class ProductData(BaseModel):
     description: str | None
     price: int
     currency: str
-    sale_limit: int
+    sale_limit: int | None
     create_at: datetime
     update_at: datetime
     delete_at: datetime | None
