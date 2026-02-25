@@ -115,3 +115,34 @@ async def test_checkout_raises_when_product_sold_out(monkeypatch: pytest.MonkeyP
 
     assert exc.value.status_code == 409
     assert exc.value.detail == "product sold out"
+
+
+@pytest.mark.asyncio
+async def test_checkout_does_not_apply_sold_out_when_sale_limit_is_null(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake_order = SimpleNamespace(id=13, member_id=5, product_id=9, amount=Decimal("100.00"), currency="TWD")
+
+    monkeypatch.setattr("services.payment_service.controller.payment_controller.decode_member_token", lambda token: 5)
+    monkeypatch.setattr(
+        "services.payment_service.controller.payment_controller.get_active_member_by_id",
+        lambda db, member_id: SimpleNamespace(id=5),
+    )
+    monkeypatch.setattr(
+        "services.payment_service.controller.payment_controller.get_active_product_by_id",
+        lambda db, product_id: SimpleNamespace(id=9, price=100, currency="TWD", sale_limit=None),
+    )
+    monkeypatch.setattr(
+        "services.payment_service.controller.payment_controller.count_active_orders_by_product_id",
+        lambda db, product_id: 999,
+    )
+    monkeypatch.setattr(
+        "services.payment_service.controller.payment_controller.create_order",
+        lambda db, member_id, product_id, amount, currency: fake_order,
+    )
+
+    response = await checkout_payment(
+        db=object(),
+        payload=PaymentCheckoutRequest(token="ok", product_id=9),
+    )
+
+    assert response.success is True
+    assert response.data.order_id == 13

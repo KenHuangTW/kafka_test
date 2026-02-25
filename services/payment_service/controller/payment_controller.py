@@ -16,6 +16,9 @@ from services.payment_service.schemas.payment import PaymentCheckoutRequest, Pay
 from services.payment_service.utils.jwt import decode_member_token
 
 
+ProductSnapshot = dict[str, int | str | None]
+
+
 async def _publish_order_created_event(kafka: KafkaManager, *, order_id: int) -> None:
     event = {
         "event_id": str(uuid4()),
@@ -34,7 +37,7 @@ async def _publish_order_created_event(kafka: KafkaManager, *, order_id: int) ->
         return
 
 
-async def _get_product_snapshot(db: Session, product_id: int) -> dict[str, int | str] | None:
+async def _get_product_snapshot(db: Session, product_id: int) -> ProductSnapshot | None:
     product = get_active_product_by_id(db=db, product_id=product_id)
     if product is None:
         return None
@@ -46,7 +49,7 @@ async def _get_product_snapshot(db: Session, product_id: int) -> dict[str, int |
     }
 
 
-async def _require_product(db: Session, product_id: int) -> dict[str, int | str]:
+async def _require_product(db: Session, product_id: int) -> ProductSnapshot:
     product = await _get_product_snapshot(db=db, product_id=product_id)
     if product is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="product not found")
@@ -66,7 +69,8 @@ async def checkout_payment(
 
     product = await _require_product(db=db, product_id=payload.product_id)
     sold_count = count_active_orders_by_product_id(db=db, product_id=int(product["id"]))
-    if sold_count >= int(product["sale_limit"]):
+    sale_limit = product["sale_limit"]
+    if sale_limit is not None and sold_count >= int(sale_limit):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="product sold out")
 
     order = create_order(
